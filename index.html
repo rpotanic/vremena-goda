@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Времена Года — бронирование</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --primary: #2d5a3d;
+  --accent: #d4a373;
+  --soft: #f8f4ef;
+  --card: rgba(255, 255, 255, 0.92);
+  --text: #2c3e50;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: var(--tg-viewport-stable-height, 100dvh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: linear-gradient(160deg, #1a3a2a 0%, #2d5a3d 40%, #4a7c59 70%, #6b8e6b 100%);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  align-items: safe center;
+  justify-content: center;
+  --page-padding: 20px;
+  padding: var(--page-padding);
+  padding-top: calc(var(--page-padding) + var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  padding-right: calc(var(--page-padding) + var(--tg-safe-area-inset-right, 0px) + var(--tg-content-safe-area-inset-right, 0px));
+  padding-bottom: calc(var(--page-padding) + var(--tg-safe-area-inset-bottom, 0px) + var(--tg-content-safe-area-inset-bottom, 0px));
+  padding-left: calc(var(--page-padding) + var(--tg-safe-area-inset-left, 0px) + var(--tg-content-safe-area-inset-left, 0px));
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 80%, rgba(255, 220, 180, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(180, 220, 200, 0.1) 0%, transparent 50%);
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  width: 100%;
+}
+
+.card {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 40px 36px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  text-align: center;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.1rem;
+  color: var(--primary);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.brand {
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.brand-region {
+  margin: 4px 0 24px;
+  color: #555;
+  font-size: 0.875rem;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: #555;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+label {
+  font-weight: 500;
+  font-size: 0.92rem;
+  margin-bottom: 4px;
+  display: block;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid #e0d6cc;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.15);
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.input-row input {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 8px;
+}
+
+.add-guest-btn {
+  background: #e8f0ea;
+  color: var(--primary);
+  border: 1.5px solid #c5d9cc;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.add-guest-btn:hover {
+  background: #d4e6db;
+  border-color: var(--primary);
+}
+
+.guest-field {
+  margin-bottom: 4px;
+}
+
+.guest-field label {
+  margin-bottom: 6px;
+}
+
+button#startBtn, button#submitBtn {
+  margin-top: 10px;
+  background: linear-gradient(135deg, #2d5a3d, #3d7a52);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 20px rgba(45, 90, 61, 0.3);
+  width: 100%;
+}
+
+button#startBtn:hover, button#submitBtn:enabled:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(45, 90, 61, 0.4);
+}
+
+button#startBtn:active, button#submitBtn:active { transform: translateY(0); }
+
+/* Surprise overlay */
+#surprise {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+}
+
+.message-box {
+  background: white;
+  border-radius: 28px;
+  padding: 50px 40px;
+  max-width: min(500px, 100%);
+  overflow-wrap: anywhere;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+  animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.message-box.slide-out {
+  animation: slideOut 0.5s ease-in forwards;
+}
+
+.message-box.slide-in {
+  animation: slideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes popIn {
+  from { opacity: 0; scale: 0.95; }
+  to { opacity: 1; scale: 1; }
+}
+
+@keyframes slideOut {
+  0% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-40px) scale(0.95); }
+}
+
+@keyframes slideIn {
+  0% { opacity: 0; transform: translateX(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.message-box h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: #2d5a3d;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.message-box p {
+  font-size: 1.15rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+.emoji {
+  font-size: 4rem;
+  margin-bottom: 10px;
+  display: block;
+  animation: bounce 1.2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.congrats h2 {
+  color: #c45c7a;
+  font-size: 2.2rem;
+}
+
+.hearts {
+  font-size: 2.5rem;
+  margin: 10px 0;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Confetti canvas */
+#confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.hint-btn {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1.5px solid #ffcc80;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.hint-btn:enabled:hover {
+  background: #ffe0b2;
+  border-color: #e65100;
+}
+
+#autoFillBtn:enabled { cursor: pointer; }
+
+button:disabled, button#submitBtn:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.small-hint {
+  --hint-background: #ffffff;
+  position: fixed;
+  background: var(--hint-background);
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #c5d9cc;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.32);
+  z-index: 10000;
+  text-align: center;
+  width: max-content;
+  max-width: min(260px, var(--hint-max-width, calc(100% - 16px)));
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.small-hint::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: var(--arrow-left);
+  transform: translateX(-50%);
+  border-width: 8px 8px 0 8px;
+  border-style: solid;
+  border-color: var(--hint-background) transparent transparent transparent;
+}
+
+.small-hint.below::after {
+  top: -8px;
+  bottom: auto;
+  border-width: 0 8px 8px;
+  border-color: transparent transparent var(--hint-background);
+}
+
+.fertilization {
+  --egg-size: 110px;
+  --egg-inset: 20px;
+  width: 100%;
+  max-width: 340px;
+  height: 160px;
+  margin: 8px auto 18px;
+  position: relative;
+  background: #fff5f8;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.egg {
+  position: absolute;
+  right: var(--egg-inset);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--egg-size);
+  height: var(--egg-size);
+  background: radial-gradient(circle at 35% 35%, #fff 0%, #ffb6c1 40%, #ff8fab 100%);
+  border-radius: 50%;
+  box-shadow: inset -8px -8px 20px rgba(255,100,140,0.3), 0 4px 15px rgba(255,140,170,0.25);
+}
+
+.egg::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.6);
+}
+
+.sperm {
+  position: absolute;
+  --head-width: 14px;
+  --swim-start: -30px;
+  --swim-end: calc(100% - var(--egg-inset) - var(--egg-size) - var(--head-width) / 2);
+  left: var(--swim-start);
+  top: 50%;
+  width: var(--head-width);
+  height: 22px;
+  background: #7ec8e3;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation: swimToEgg 4s ease-in-out forwards;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.sperm::before {
+  content: '';
+  position: absolute;
+  left: -28px;
+  top: 8px;
+  width: 30px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #7ec8e3);
+  border-radius: 2px;
+  transform-origin: right center;
+  animation: tailWag 0.4s ease-in-out infinite;
+}
+
+@keyframes swimToEgg {
+  0% { left: var(--swim-start); transform: translateY(-50%) rotate(-10deg); }
+  25% { transform: translateY(-58%) rotate(8deg); }
+  50% { transform: translateY(-45%) rotate(-6deg); }
+  75% { transform: translateY(-52%) rotate(4deg); }
+  100% { left: var(--swim-end); transform: translateY(-50%) rotate(0deg); }
+}
+
+@keyframes tailWag {
+  0%, 100% { transform: rotate(-15deg); }
+  50% { transform: rotate(15deg); }
+}
+
+@media (max-width: 480px) {
+  .card { padding: 30px 24px; }
+  h1 { font-size: 1.8rem; }
+  .message-box { padding: 40px 24px; }
+  .message-box h2 { font-size: 1.7rem; }
+
+  .add-guest-btn {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 1.25rem;
+  }
+
+  .add-guest-label { display: none; }
+}
+
+@media (max-width: 360px), (481px <= width <= 560px) {
+  .card { padding-inline: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card" id="welcome">
+    <p class="brand">База отдыха «Времена Года»</p>
+    <p class="brand-region">Нижегородская область</p>
+    <h1>Дорогие гости!</h1>
+    <p class="subtitle">Чтобы оформить бронирование на базе отдыха, зарегистрируйте каждого гостя, который приедет с вами.</p>
+    <button type="button" id="startBtn">Продолжить</button>
+  </div>
+
+  <div class="card" id="invitation" style="display:none;">
+    <h1>Заполните всех гостей</h1>
+    <p class="subtitle">Для бронирования укажите ФИО каждого гостя, который приедет с вами.</p>
+    
+    <form id="guestForm" novalidate>
+      <div id="guestsContainer">
+        <div class="guest-field">
+          <label>Гость 1 — ФИО</label>
+          <div class="input-row">
+            <input type="text" name="guest[]" placeholder="Иванов Иван Иванович" required>
+            <button type="button" class="add-guest-btn" aria-label="Добавить ещё гостя">+<span class="add-guest-label"> Добавить ещё гостя</span></button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label for="note">Комментарий (необязательно)</label>
+        <textarea id="note" name="note" rows="3" placeholder="Пожелания, аллергии, время приезда..."></textarea>
+      </div>
+      <button type="button" id="submitBtn">Отправить</button>
+    </form>
+  </div>
+</div>
+
+<div id="surprise">
+  <div class="message-box" id="messageBox">
+    <!-- динамически -->
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+const telegramWebApp = window.Telegram?.WebApp;
+
+function initializeTelegram() {
+    if (!telegramWebApp) return;
+    telegramWebApp.ready();
+    telegramWebApp.expand();
+    if (typeof telegramWebApp.disableVerticalSwipes === 'function') {
+        telegramWebApp.disableVerticalSwipes();
+    }
+}
+
+function triggerHaptic(method, type) {
+    try {
+        const feedback = telegramWebApp?.HapticFeedback;
+        if (telegramWebApp?.isVersionAtLeast?.('6.1') === false) return;
+        if (typeof feedback?.[method] === 'function') feedback[method](type);
+    } catch {
+        return;
+    }
+}
+
+const form = document.getElementById('guestForm');
+const pageContainer = document.querySelector('.container');
+const guestsContainer = document.getElementById('guestsContainer');
+const submitButton = document.getElementById('submitBtn');
+const invitation = document.getElementById('invitation');
+const surprise = document.getElementById('surprise');
+const messageBox = document.getElementById('messageBox');
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+
+const FORGOT_GUEST_MS = 3500;
+const HINT_MS = 10000;
+const SLIDE_MS = 4000;
+const SLIDE_TRANSITION_MS = 500;
+const FERTILIZATION_SLIDE_MS = 4500;
+const CONFETTI_REPEAT_MS = 600;
+const HINT_MARGIN = 8;
+const HINT_GAP = 10;
+
+let particles = [];
+let animating = false;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function createParticles(count = 120) {
+  const colors = ['#ffb3c6', '#ffd6a5', '#caffbf', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * 100,
+      w: Math.random() * 10 + 6,
+      h: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      dx: (Math.random() - 0.5) * 4,
+      dy: Math.random() * 3 + 2,
+      rot: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 10
+    });
+  }
+}
+
+function drawConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.y += p.dy;
+    p.x += p.dx;
+    p.rot += p.rotSpeed;
+    p.dy += 0.05; // gravity
+    if (p.y > canvas.height + 20) {
+      particles.splice(i, 1);
+      continue;
+    }
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot * Math.PI / 180);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  }
+
+  if (particles.length > 0) {
+    requestAnimationFrame(drawConfetti);
+  } else {
+    animating = false;
+  }
+}
+
+function launchConfetti() {
+  if (!ctx) return;
+  particles = [];
+  createParticles(150);
+  if (!animating) {
+    animating = true;
+    drawConfetti();
+  }
+}
+
+let guestCount = 1;
+
+function addGuestField() {
+  triggerHaptic('impactOccurred', 'light');
+  guestCount++;
+  const field = document.createElement('div');
+  field.className = 'guest-field';
+  field.innerHTML = `
+    <label>Гость ${guestCount} — ФИО</label>
+    <div class="input-row">
+      <input type="text" name="guest[]" placeholder="Иванов Иван Иванович" required>
+      <button type="button" class="add-guest-btn" aria-label="Добавить ещё гостя">+<span class="add-guest-label"> Добавить ещё гостя</span></button>
+    </div>
+  `;
+  guestsContainer.appendChild(field);
+}
+
+function addSpecialGuestField() {
+  if (guestsContainer.querySelector('.special-guest')) return;
+  guestCount++;
+  const field = document.createElement('div');
+  field.className = 'guest-field special-guest';
+  field.innerHTML = `
+    <label>Гость ${guestCount} — ФИО</label>
+    <div class="input-row">
+      <input type="text" name="guest[]" placeholder="???" readonly>
+      <button type="button" class="hint-btn">Подсказка</button>
+    </div>
+  `;
+  guestsContainer.appendChild(field);
+}
+
+function getHintViewport() {
+  const viewport = window.visualViewport;
+  const { clientWidth, clientHeight } = document.documentElement;
+  const left = (viewport?.offsetLeft ?? 0) + HINT_MARGIN;
+  const top = (viewport?.offsetTop ?? 0) + HINT_MARGIN;
+  const width = (viewport?.width ?? clientWidth) - 2 * HINT_MARGIN;
+  return { left, top, width, bottom: top + (viewport?.height ?? clientHeight) - 2 * HINT_MARGIN };
+}
+
+function positionHint(hint, button, row, revealRow = false) {
+  const viewport = getHintViewport();
+  hint.style.setProperty('--hint-max-width', viewport.width + 'px');
+  const { offsetWidth: width, offsetHeight: height } = hint;
+  let bounds = row.getBoundingClientRect();
+  const clearance = height + HINT_GAP;
+  const isRowVisible = bounds.top >= viewport.top && bounds.bottom <= viewport.bottom;
+  const hasSpace = bounds.top - clearance >= viewport.top || bounds.bottom + clearance <= viewport.bottom;
+
+  if (revealRow && (!isRowVisible || !hasSpace)) {
+    const firstRowTop = viewport.top + clearance;
+    const lastRowTop = viewport.bottom - bounds.height;
+    const targetTop = firstRowTop <= lastRowTop
+      ? (firstRowTop + lastRowTop) / 2
+      : viewport.top;
+    window.scrollBy({ top: bounds.top - targetTop, behavior: 'instant' });
+    bounds = row.getBoundingClientRect();
+  }
+
+  const rect = button.getBoundingClientRect();
+  const anchorX = rect.left + rect.width / 2;
+  const spaceAbove = bounds.top - viewport.top;
+  const spaceBelow = viewport.bottom - bounds.bottom;
+  const below = spaceAbove < clearance && spaceBelow > spaceAbove;
+  const preferredTop = below ? bounds.bottom + HINT_GAP : bounds.top - clearance;
+  const top = Math.max(viewport.top, Math.min(preferredTop, viewport.bottom - height));
+  const left = Math.max(viewport.left, Math.min(anchorX - width / 2, viewport.left + viewport.width - width));
+  const arrowLeft = Math.max(HINT_MARGIN, Math.min(anchorX - left, width - HINT_MARGIN));
+
+  hint.classList.toggle('below', below);
+  hint.style.left = left + 'px';
+  hint.style.top = top + 'px';
+  hint.style.setProperty('--arrow-left', arrowLeft + 'px');
+}
+
+let hintTimer;
+
+function showSmallHint(button) {
+  if (button.disabled || hintTimer !== undefined) return;
+  const row = button.closest('.input-row');
+  const input = row.querySelector('input');
+
+  triggerHaptic('impactOccurred', 'light');
+  submitButton.disabled = true;
+  button.disabled = true;
+  button.textContent = '...';
+  input.readOnly = false;
+  input.disabled = false;
+
+  const hint = document.createElement('div');
+  hint.className = 'small-hint';
+  hint.setAttribute('role', 'status');
+  document.body.appendChild(hint);
+  hint.textContent = 'Это самый младший из Потаничевых';
+
+  const viewport = window.visualViewport;
+  const updatePosition = () => positionHint(hint, button, row);
+  const updateAfterResize = () => positionHint(hint, button, row, document.activeElement === input);
+  window.addEventListener('scroll', updatePosition, true);
+  window.addEventListener('resize', updateAfterResize);
+  viewport?.addEventListener('scroll', updatePosition);
+  viewport?.addEventListener('resize', updateAfterResize);
+
+  input.focus();
+  updateAfterResize();
+
+  hintTimer = setTimeout(() => {
+    hintTimer = undefined;
+    window.removeEventListener('scroll', updatePosition, true);
+    window.removeEventListener('resize', updateAfterResize);
+    viewport?.removeEventListener('scroll', updatePosition);
+    viewport?.removeEventListener('resize', updateAfterResize);
+    hint.remove();
+    showAutoFillPage();
+  }, HINT_MS);
+}
+
+function showAutoFillPage() {
+  pageContainer.style.display = 'none';
+  surprise.style.display = 'flex';
+  messageBox.innerHTML = `
+    <span class="emoji">✨</span>
+    <h2>Готово!</h2>
+    <p>Мы можем заполнить данные за вас.</p>
+    <button type="button" id="autoFillBtn" style="margin-top:20px; background: linear-gradient(135deg, #2d5a3d, #3d7a52); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-size: 1rem; font-weight: 600;">Заполнить автоматически</button>
+  `;
+  messageBox.className = 'message-box';
+  
+  document.getElementById('autoFillBtn').addEventListener('click', startSlideshow);
+}
+
+const slides = [
+  { emoji: '😊', title: 'Да-да, вы всё правильно поняли...', text: '' },
+  { emoji: '🎉', title: 'Это свершилось!!!', text: '' },
+  { emoji: '', title: 'Он наконец-то догнал её', text: '', special: 'fertilization' },
+  { emoji: '💕', title: 'Вы скоро станете бабушкой и дедушкой', text: 'Мы с нетерпением ждём появления нового члена семьи! 👶' }
+];
+
+let slideTimer;
+let confettiTimer;
+let hasSlideshowStarted = false;
+
+function showSlide(index) {
+  messageBox.classList.remove('slide-in');
+  messageBox.classList.add('slide-out');
+  slideTimer = setTimeout(() => renderSlide(index), SLIDE_TRANSITION_MS);
+}
+
+function renderSlide(index) {
+  const slide = slides[index];
+  const isFertilization = slide.special === 'fertilization';
+  const isLastSlide = index === slides.length - 1;
+  messageBox.innerHTML = `
+    ${isFertilization ? '<div class="fertilization"><div class="egg"></div><div class="sperm"></div></div>' : `<span class="emoji">${slide.emoji}</span>`}
+    <h2>${slide.title}</h2>
+    ${slide.text ? `<p>${slide.text}</p>` : ''}
+  `;
+  messageBox.className = 'message-box slide-in' + (isLastSlide ? ' congrats' : '');
+
+  if (isLastSlide) {
+    slideTimer = undefined;
+    triggerHaptic('notificationOccurred', 'success');
+    launchConfetti();
+    confettiTimer = setTimeout(launchConfetti, CONFETTI_REPEAT_MS);
+    return;
+  }
+
+  slideTimer = setTimeout(() => showSlide(index + 1), isFertilization ? FERTILIZATION_SLIDE_MS : SLIDE_MS);
+}
+
+function startSlideshow(event) {
+  if (hasSlideshowStarted) return;
+  hasSlideshowStarted = true;
+  triggerHaptic('impactOccurred', 'light');
+  event.currentTarget.disabled = true;
+  clearTimeout(slideTimer);
+  clearTimeout(confettiTimer);
+  showSlide(0);
+}
+
+document.getElementById('startBtn').addEventListener('click', function() {
+  triggerHaptic('impactOccurred', 'light');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('invitation').style.display = 'block';
+});
+
+let forgotGuestTimer;
+
+function handleGuestSubmit(event) {
+  event.preventDefault();
+  if (submitButton.disabled || forgotGuestTimer !== undefined || guestsContainer.querySelector('.special-guest')) return;
+  triggerHaptic('impactOccurred', 'light');
+  submitButton.disabled = true;
+
+  pageContainer.style.display = 'none';
+  surprise.style.display = 'flex';
+  messageBox.innerHTML = `
+    <span class="emoji">👀</span>
+    <h2>Кажется, вы забыли ещё одного гостя</h2>
+    <p>В списке кого-то не хватает...</p>
+  `;
+  messageBox.className = 'message-box';
+
+  // Через 3.5 секунды возвращаемся к форме и добавляем специальную строку.
+  forgotGuestTimer = setTimeout(() => {
+    forgotGuestTimer = undefined;
+    surprise.style.display = 'none';
+    pageContainer.style.display = 'block';
+    addSpecialGuestField();
+    submitButton.disabled = false;
+  }, FORGOT_GUEST_MS);
+}
+
+form.addEventListener('submit', handleGuestSubmit);
+submitButton.addEventListener('click', () => form.requestSubmit());
+form.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' || event.isComposing || !event.target.matches('input[type="text"]')) return;
+  event.preventDefault();
+  if (!submitButton.disabled) form.requestSubmit();
+});
+
+guestsContainer.addEventListener('click', (event) => {
+  const hintButton = event.target.closest('.hint-btn');
+  if (hintButton) {
+    showSmallHint(hintButton);
+  }
+  if (event.target.closest('.add-guest-btn')) {
+    addGuestField();
+  }
+});
+
+initializeTelegram();
+</script>
+</body>
+</html>
